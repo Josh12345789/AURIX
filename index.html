@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AURIX TRADER | AI Journal</title>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<!-- FONTS -->
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700&family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+
+<style>
+*{
+margin:0;
+padding:0;
+box-sizing:border-box;
+font-family:'Inter',sans-serif;
+}
+
+body{
+min-height:100vh;
+display:flex;
+background:linear-gradient(-45deg,#0f172a,#1e293b,#0b1220,#111827);
+background-size:400% 400%;
+animation:gradientBG 12s ease infinite;
+color:white;
+overflow-x:hidden;
+}
+
+@keyframes gradientBG{
+0%{background-position:0% 50%}
+50%{background-position:100% 50%}
+100%{background-position:0% 50%}
+}
+
+/* SIDEBAR */
+.sidebar{
+width:220px;
+padding:20px;
+background:rgba(255,255,255,0.05);
+backdrop-filter:blur(10px);
+border-right:1px solid rgba(255,255,255,0.1);
+}
+
+.logo{
+font-family:'Orbitron',sans-serif;
+font-size:18px;
+color:#00f5ff;
+text-shadow:0 0 10px #00f5ff;
+}
+
+/* AVATAR */
+.avatar{
+width:60px;
+height:60px;
+border-radius:50%;
+margin-top:20px;
+background:url("https://i.imgur.com/8Km9tLL.png");
+background-size:cover;
+border:2px solid #00f5ff;
+box-shadow:0 0 15px #00f5ff;
+animation:pulse 2s infinite;
+}
+
+@keyframes pulse{
+0%{box-shadow:0 0 10px #00f5ff;}
+50%{box-shadow:0 0 25px #ff00ff;}
+100%{box-shadow:0 0 10px #00f5ff;}
+}
+
+/* MAIN */
+.main{
+flex:1;
+padding:20px;
+display:flex;
+flex-direction:column;
+gap:15px;
+}
+
+/* GREETING */
+.greeting{
+font-size:22px;
+font-family:'Orbitron';
+animation:floatIn 1s ease;
+}
+
+@keyframes floatIn{
+from{opacity:0;transform:translateY(-20px)}
+to{opacity:1;transform:translateY(0)}
+}
+
+/* CARDS */
+.cards{
+display:grid;
+grid-template-columns:repeat(auto-fit,minmax(120px,1fr));
+gap:12px;
+}
+
+.card{
+background:rgba(255,255,255,0.06);
+backdrop-filter:blur(10px);
+padding:12px;
+border-radius:12px;
+text-align:center;
+transition:0.3s;
+border:1px solid rgba(255,255,255,0.1);
+}
+
+.card:hover{
+transform:translateY(-5px) scale(1.03);
+box-shadow:0 0 20px rgba(0,245,255,0.3);
+}
+
+/* FORM */
+.form{
+background:rgba(255,255,255,0.06);
+padding:15px;
+border-radius:12px;
+display:grid;
+grid-template-columns:repeat(auto-fit,minmax(130px,1fr));
+gap:8px;
+}
+
+input,select{
+padding:8px;
+border:none;
+border-radius:6px;
+background:rgba(0,0,0,0.3);
+color:white;
+outline:none;
+transition:0.3s;
+}
+
+input:focus,select:focus{
+box-shadow:0 0 10px #00f5ff;
+}
+
+button{
+padding:10px;
+border:none;
+border-radius:8px;
+background:linear-gradient(90deg,#00f5ff,#ff00ff);
+color:white;
+cursor:pointer;
+font-weight:bold;
+transition:0.3s;
+}
+
+button:hover{
+transform:scale(1.05);
+}
+
+/* CHART */
+.chartBox{
+height:200px;
+background:rgba(255,255,255,0.05);
+border-radius:12px;
+padding:10px;
+}
+
+/* TABLE */
+table{
+width:100%;
+font-size:12px;
+border-collapse:collapse;
+}
+
+td,th{
+padding:8px;
+border-bottom:1px solid rgba(255,255,255,0.1);
+text-align:center;
+}
+
+.deleteBtn{
+background:red;
+padding:4px;
+border:none;
+border-radius:4px;
+cursor:pointer;
+}
+
+/* HEATMAP */
+.heatmap{
+display:grid;
+grid-template-columns:repeat(auto-fill,12px);
+gap:3px;
+}
+
+.day{
+width:12px;
+height:12px;
+border-radius:2px;
+}
+
+/* MOBILE */
+@media(max-width:768px){
+body{flex-direction:column;}
+.sidebar{width:100%;display:flex;justify-content:space-between;align-items:center;}
+}
+</style>
+</head>
+
+<body>
+
+<div class="sidebar">
+<div>
+<div class="logo">AURIX TRADER</div>
+<div class="avatar"></div>
+</div>
+</div>
+
+<div class="main">
+
+<div class="greeting">Welcome back, Joshua 🚀</div>
+
+<div class="cards">
+<div class="card"><div id="winRate">0%</div><div>Win Rate</div></div>
+<div class="card"><div id="pnl">0%</div><div>PnL</div></div>
+<div class="card"><div id="daily">0%</div><div>Today</div></div>
+</div>
+
+<div class="form">
+<select id="asset"><option>NASDAQ</option><option>S&P 500</option></select>
+<select id="type"><option>Buy</option><option>Sell</option></select>
+
+<input id="risk" type="number" placeholder="Risk %">
+<input id="strategy" placeholder="Strategy">
+
+<input type="file" id="screenshot">
+
+<select id="outcome"><option>Win</option><option>Loss</option></select>
+
+<button onclick="addTrade()">Add Trade</button>
+</div>
+
+<div class="chartBox">
+<canvas id="chart"></canvas>
+</div>
+
+<table>
+<thead>
+<tr><th>Asset</th><th>Risk</th><th>Strategy</th><th>Img</th><th></th></tr>
+</thead>
+<tbody id="tableBody"></tbody>
+</table>
+
+<button onclick="analyzeTrades()">🧠 AI Analyze</button>
+<div id="aiResult"></div>
+
+<div class="heatmap" id="heatmap"></div>
+
+</div>
+
+<script>
+let trades=JSON.parse(localStorage.getItem("trades"))||[];
+
+function today(){
+return new Date().toISOString().split('T')[0];
+}
+
+function addTrade(){
+let file=screenshot.files[0];
+let reader=new FileReader();
+
+reader.onload=function(){
+trades.push({
+date:today(),
+asset:asset.value,
+type:type.value,
+risk:+risk.value,
+strategy:strategy.value,
+outcome:outcome.value,
+img:reader.result||""
+});
+
+localStorage.setItem("trades",JSON.stringify(trades));
+updateAll();
+};
+
+if(file) reader.readAsDataURL(file);
+else reader.onload();
+}
+
+function deleteTrade(i){
+trades.splice(i,1);
+localStorage.setItem("trades",JSON.stringify(trades));
+updateAll();
+}
+
+function calcDaily(){
+let d=today(),sum=0;
+trades.filter(t=>t.date===d).forEach(t=>{
+sum+=t.outcome==="Win"?t.risk:-t.risk;
+});
+return sum;
+}
+
+function updateStats(){
+let wins=trades.filter(t=>t.outcome==="Win").length;
+let pnlVal=trades.reduce((a,t)=>a+(t.outcome==="Win"?t.risk:-t.risk),0);
+
+winRate.innerText=trades.length?((wins/trades.length)*100).toFixed(1)+"%":"0%";
+pnl.innerText=pnlVal.toFixed(2)+"%";
+daily.innerText=calcDaily().toFixed(2)+"%";
+}
+
+function updateTable(){
+tableBody.innerHTML="";
+trades.forEach((t,i)=>{
+tableBody.innerHTML+=`
+<tr>
+<td>${t.asset}</td>
+<td>${t.risk}%</td>
+<td>${t.strategy}</td>
+<td>${t.img?'<img src="'+t.img+'" width="30">':''}</td>
+<td><button class="deleteBtn" onclick="deleteTrade(${i})">X</button></td>
+</tr>`;
+});
+}
+
+let chart=new Chart(document.getElementById("chart"),{
+type:"line",
+data:{labels:[],datasets:[{data:[],borderColor:"#00f5ff"}]},
+options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}}}
+});
+
+function updateChart(){
+let bal=0,data=[];
+trades.forEach(t=>{
+bal+=t.outcome==="Win"?t.risk:-t.risk;
+data.push(bal);
+});
+chart.data.labels=trades.map((_,i)=>i+1);
+chart.data.datasets[0].data=data;
+chart.update();
+}
+
+function updateHeatmap(){
+heatmap.innerHTML="";
+trades.forEach(t=>{
+let d=document.createElement("div");
+d.className="day";
+d.style.background=t.outcome==="Win"?"#00ff88":"#ff0033";
+heatmap.appendChild(d);
+});
+}
+
+function updateAll(){
+updateStats();
+updateTable();
+updateChart();
+updateHeatmap();
+}
+
+async function analyzeTrades(){
+aiResult.innerText="Analyzing trades... 🧠 (connect backend for AI)";
+}
+
+updateAll();
+</script>
+
+</body>
+</html>
